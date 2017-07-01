@@ -1,0 +1,192 @@
+<html lang="en">
+<head>
+  <title>Star Wars VVIKI</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/bootstrap.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
+  <script src="{{url_for('static', filename='js/jquery-3.2.1.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+  
+    </head>
+    <body>
+        
+        <div class="container">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-1">
+                        <a href="/">
+                            <img src="/static/home.png" alt="Home" width="64" height="64" border="0">
+                        </a>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="button" class="btn" value="Voting statistics" data-toggle="modal" data-target="#myModal2">
+                    </div>
+                    {% if username == None or username == 'None' %}
+                        <div class="col-sm-1">
+                            <form action="/register" method='POST'>
+                                <button class="btn" value="register" name=option>Register</button>
+                                <input type="hidden" name=page value="{{page}}">
+                                <input type="hidden" name=url value={{url}}>
+                            </form>
+                        </div>
+                    {% endif %}
+                    {% if username == None or username == 'None' %}
+                        <div class="col-sm-1">
+                            <form action="/login" method='POST'>
+                                <button class="btn" value="login" name="option">Login</button>
+                                <input type="hidden" name=page value="{{page}}">
+                                <input type="hidden" name=url value={{url}}>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="col-sm-1">
+                            <form action="/planets/{{page}}" method="POST">
+                                <button class="btn" value=logout name='option'>Logout</button>
+                                <input type="hidden" name=page value="{{page}}">
+                                <input type="hidden" name=url value={{url}}>
+                            </form>
+                        </div>
+                    {% endif %}
+                    <div class="col-sm-offset-4 col-sm-3 col-md-2">
+                        {% if username == None or username == 'None'%}
+                            <span>Please log in</span>
+                        {% else %}
+                            <h3>Welcome {{ username }}</h3>
+                            <input type="hidden" id="user" value="{{user_id}}">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h1>In a galaxy, far far away...</h1>
+                <div class="row">
+                    <div class="col-sm-2">
+                    {% if page|int == 1 or page == '1' %}
+                            <button class="btn btn-info btn-lg">Previous</button>
+                        {% else %}
+                            <form action="/planets/{{page|int-1}}" class='formi' method="POST">
+                                <button value="{{ planets[2] }}" name='url' class="btn btn-info btn-lg">Previous</button>
+                                <input type="hidden" name=username value={{user}}>
+                                <input type="hidden" name=userid value={{user_id}}>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-1">
+                        <form action="/planets/{{page|int+1}}" method="POST">
+                            <button value="{{ planets[1] }}" name='url' class="btn btn-info btn-lg">Next</button>
+                            <input type="hidden" name=username value={{user}}>
+                            <input type="hidden" name=userid value={{user_id}}>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+        <table class="table">
+            <thead >
+                <tr>
+                    <th>Name</th>
+                    <th>Diameter</th>
+                    <th>Climate</th>
+                    <th>Terrain</th>
+                    <th>Surface water</th>
+                    <th>Population</th>
+                    <th>Resident(s)</th>
+                    {% if username == None or username == 'None' %}
+                    {% else %}
+                    <th>Votes</th>
+                    {% endif %}
+                </tr>
+                </tr>
+                
+            </thead>
+            <tbody>
+                
+                {% for planetname, planet in planets[0].items() %}
+                <tr>
+                    <td id="{{planet['id']}}">{{ planetname }}</td>
+                    <td>{{ planet['diameter'] }}</td>
+                    <td>{{ planet['climate'] }}</td>
+                    <td>{{ planet['terrain'] }}</td>
+                    <td>{{ planet['surface_water'] }}</td>
+                    <td>{{ planet['population'] }}</td>
+                    {% if planet['residents'] %}
+                        <td><input type="button" onclick="getResident({{ planet['residents'] }})" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal" value="{{ planet['residents']|length }} resident(s)"></td>
+                    {% else %}
+                        <td>Unknown</td>
+                    {% endif %}
+                    {% if username == None or username == 'None' %}
+                    {% else %}
+                        <td>
+                            {% set isIt = [1] %}
+                            {% for i in all_votes %}
+                                {% if i['planet_id']|int == planet['id']|int %}
+                                    <button class="btn" id="{{ planetname }}" name=vote value="{{ i['sum'] }}" onclick='vote({{planet["id"]}})'>{{ i['sum'] }}</button>
+                                    {% set _ = isIt.pop() %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if isIt %}
+                                    <button class="btn" id="{{ planetname }}" name=vote value=0 onclick='vote({{planet["id"]}})'>0</button>
+                            {% endif %}
+                                
+                            
+                        </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        </div>
+        </div>
+    </body>
+</html>
+</div>
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Resident(s)</h4>
+        </div>
+        <div class="modal-body">
+          <p id="modala">Some text in the modal.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Modal Statistics -->
+  <div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Statistics</h4>
+        </div>
+        <div class="modal-body">
+          <p id="modalb">Soon.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+</div>
+    <script src="{{url_for('static', filename='js/dom.js')}}"></script>
+    <script src="{{url_for('static', filename='js/main.js')}}"></script>
+</body>
+</html>
