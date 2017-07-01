@@ -70,4 +70,3 @@ def loggedin(page=None):
 if __name__ == '__main__':
     username = None
     user_id = None
-    app.run(debug=True)
